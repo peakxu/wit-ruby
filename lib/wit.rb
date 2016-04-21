@@ -10,6 +10,12 @@ class WitException < Exception
 end
 
 class WitLowConfidenceException < WitException
+  attr_reader :confidence
+
+  def initialize(confidence, msg = nil)
+    @confidence = confidence
+    super(msg)
+  end
 end
 
 def req(access_token, meth_class, path, params={}, payload={})
@@ -95,7 +101,7 @@ class Wit
     rst = converse session_id, message, context
     confidence = rst['confidence']
     raise WitException.new 'couldn\'t find confidence in Wit response' unless confidence
-    raise WitLowConfidenceException.new "#{confidence} below minimum confidence #{min_confidence}" if confidence < min_confidence
+    raise WitLowConfidenceException.new(confidence, "#{confidence} below minimum confidence #{min_confidence}") if confidence < min_confidence
     raise WitException.new 'couldn\'t find type in Wit response' unless rst.has_key? 'type'
 
     type = rst['type']
