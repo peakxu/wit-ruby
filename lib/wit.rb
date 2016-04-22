@@ -48,13 +48,21 @@ end
 
 class Wit
   class << self
-    attr_writer :logger
+    attr_writer :logger, :on_converse_response, :on_message_response
 
     def logger
       @logger ||= begin
         $stdout.sync = true
         Logger.new(STDOUT)
       end.tap { |logger| logger.level = Logger::INFO }
+    end
+
+    def on_converse_response
+      @on_converse_response ||= ->(res) { logger.debug "Converse response: #{res}" }
+    end
+
+    def on_message_response
+      @on_message_response ||= ->(res) { logger.debug "Message response: #{res}" }
     end
   end
 
@@ -72,7 +80,7 @@ class Wit
     params = {}
     params[:q] = msg unless msg.nil?
     res = req @access_token, Net::HTTP::Get, '/message', params
-    logger.debug "Message response: #{res}"
+    self.class.on_message_response.call(res)
     return res
   end
 
@@ -83,7 +91,7 @@ class Wit
     params[:q] = msg unless msg.nil?
     params[:session_id] = session_id
     res = req @access_token, Net::HTTP::Post, '/converse', params, context
-    logger.debug "Converse response: #{res}"
+    self.class.on_converse_response.call(res)
     return res
   end
 
