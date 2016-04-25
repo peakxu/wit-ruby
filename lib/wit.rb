@@ -98,7 +98,10 @@ class Wit
   def run_actions_(session_id, message, context, max_steps, user_message)
     raise WitException.new 'max iterations reached' unless max_steps > 0
 
+    start_time = Time.now
     rst = converse session_id, message, context
+    end_time = Time.now
+    logger.info("Converse took #{end_time - start_time} s")
     raise WitException.new 'couldn\'t find type in Wit response' unless rst.has_key? 'type'
 
     type = rst['type']
